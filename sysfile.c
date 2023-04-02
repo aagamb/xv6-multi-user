@@ -1,4 +1,4 @@
-//
+#define O_NO_DEREF  0x004
 // File-system system calls.
 // Mostly argument checking, since we don't trust
 // user code, and calls into file.c and fs.c.
@@ -15,6 +15,8 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+
+#define LINK_LIMIT 50
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -110,8 +112,32 @@ sys_fstat(void)
 
   if(argfd(0, 0, &f) < 0 || argptr(1, (void*)&st, sizeof(*st)) < 0)
     return -1;
-  return filestat(f, st);
+ if(f->ip->type == T_SYMLINK) {
+    struct inode *resolved_ip;
+    char buf[100];
+
+    ilock(f->ip);
+    read_symlink(f->ip, buf, sizeof(buf));
+    iunlock(f->ip);
+
+    begin_op();
+    resolved_ip = namei(buf, 1);
+    if(resolved_ip == 0) {
+      end_op();
+      return -1;
+    }
+    ilock(resolved_ip);
+    stati(resolved_ip, st);
+    iunlockput(resolved_ip);
+    end_op();
+  } else {
+    ilock(f->ip);
+    stati(f->ip, st);
+    iunlock(f->ip);
+  }
+  return 0;
 }
+
 
 // Create the path new as a link to the same inode as old.
 int
@@ -124,7 +150,7 @@ sys_link(void)
     return -1;
 
   begin_op();
-  if((ip = namei(old)) == 0){
+  if((ip = namei(old,1)) == 0){
     end_op();
     return -1;
   }
@@ -209,6 +235,9 @@ sys_unlink(void)
 
   if(ip->nlink < 1)
     panic("unlink: nlink < 1");
+        if(ip->type == T_SYMLINK) {
+    goto remove_link;
+  }
   if(ip->type == T_DIR && !isdirempty(ip)){
     iunlockput(ip);
     goto bad;
@@ -222,7 +251,7 @@ sys_unlink(void)
     iupdate(dp);
   }
   iunlockput(dp);
-
+  remove_link:
   ip->nlink--;
   iupdate(ip);
   iunlockput(ip);
@@ -381,7 +410,7 @@ sys_open(void)
   int fd, omode;
   struct file *f;
   struct inode *ip;
-
+  char buf[100];
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;
  
@@ -410,17 +439,46 @@ sys_open(void)
       return -1;
     }
   } else {
-    if((ip = namei(path)) == 0){
+    if((ip = namei(path,1)) == 0){
       end_op();
       return -1;
     }
     ilock(ip);
     if(ip->type == T_DIR && omode != O_RDONLY){
+     if(omode & O_NO_DEREF)
+        goto noderef;
       iunlockput(ip);
       end_op();
       return -1;
     }
-  }
+    noderef:
+    if(ip->type == T_SYMLINK && (omode & O_NO_DEREF)==0 )
+    {
+      iunlock(ip);
+      int res = read_symlink(path, buf, 100);
+      if(res < 0) {
+        end_op();
+        return -1;
+      }
+      ip = namei(buf,1);
+      if (ip == 0) {
+         end_op();
+        return -1;
+      }
+      ilock(ip);
+    }
+
+    if(ip->type == T_SYMLINK && (omode & O_NO_DEREF))
+    {
+      iunlock(ip);
+      ip = namei(path,0);
+      ilock(ip);
+    }
+    
+    }
+  
+    
+  
 
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
     if(f)
@@ -483,12 +541,27 @@ sys_chdir(void)
   char *path;
   struct inode *ip;
   struct proc *curproc = myproc();
+  char path_name[LINK_LIMIT];
   
   begin_op();
-  if(argstr(0, &path) < 0 || (ip = namei(path)) == 0){
+  if(argstr(0, &path) < 0 || (ip = namei(path,1)) == 0){
     end_op();
     return -1;
   }
+    if(read_symlink(path, path_name, LINK_LIMIT) == 0) 
+  {
+    if((ip = namei(path_name, 1)) == 0) 
+    {
+      end_op();
+      return -1;
+    }
+  }
+  else if((ip = namei(path, 1) )== 0) 
+  {
+    end_op();
+    return -1;
+  }
+
   
   if(checkExecutePermission(path)<0){
     end_op();
@@ -585,4 +658,90 @@ int authenticated = 1;
     return -1;
   }
 }
+
+int
+create_symlink(const char* oldpath , const char* newpath)
+{
+  struct file *f;
+  struct inode *ip;
+
+  begin_op();
+
+  if((ip = create((char*)newpath, T_SYMLINK, 0, 0)) == 0)
+  {
+    end_op();
+    return -1;
+  }
+
+  end_op();
+
+  if((f = filealloc()) == 0)
+  {
+    if(f)
+      fileclose(f);
+    iunlockput(ip);
+    return -1;
+  }
+
+  if(strlen(oldpath) > LINK_LIMIT)
+    panic("symlink: new path is too long");
+  safestrcpy((char*)ip->addrs, oldpath, LINK_LIMIT);
+  iunlock(ip);
+
+  f->ip = ip;
+  f->off = 0;
+  f->readable = 1;
+  f->writable = 0;
+  return 0;
+}
+
+int
+read_symlink(const char* pathname, char* buf, size_t bufsize)
+{
+
+  if(strlen(pathname) > bufsize)
+  {
+   
+    return -1;
+  }
+
+  struct inode * ip;
+  if ((ip = namei((char*)pathname, 1)) == 0)  // checks if the path exists
+  {
+    return -1;
+  }
+  
+  ilock(ip);
+  if(ip->type != T_SYMLINK)
+  {
+    iunlock(ip);
+    return -1;
+  }
+  
+  char buf_temp[LINK_LIMIT];
+  safestrcpy(buf_temp,(char*)ip->addrs, LINK_LIMIT);
+  struct inode * ip_next;
+  if ((ip_next = namei((char*)buf_temp, 1)) > 0)  // checks if the path exists
+  {
+      if(ip_next->type != T_SYMLINK)
+      {
+        safestrcpy(buf,(char*)ip->addrs, bufsize);
+        iunlock(ip);
+        return 0;
+      }
+      else
+      {
+          iunlock(ip);
+          return read_symlink(buf_temp,buf, bufsize);
+      }
+  }
+  else
+  {
+    iunlock(ip);
+   // cprintf("file doesnt exist");
+    return -1;
+  }
+  
+}
+
 

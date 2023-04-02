@@ -182,4 +182,35 @@ sys_setregid(void)
   }
   return -1;
 }
+int
+sys_symlink(void)
+{
+  const char *oldpath;
+  const char *newpath;
+  
+  if(argptr(0, (char**)&oldpath, 4) < 0)
+    return -1;
+  if(argptr(1, (char**)&newpath, 4) < 0)
+    return -1;
+
+
+  return create_symlink(oldpath, newpath);
+}
+
+int
+sys_readlink(void)
+{
+  const char *pathname;
+  char *buf;
+  size_t bufsize;
+  
+  if(argptr(0, (char**)&pathname, 4) < 0)
+    return -1;
+  if(argptr(1, (char**)&buf, 4) < 0)
+    return -1;
+  if(argint(2, (int*)&bufsize) < 0)
+    return -1;
+
+  return read_symlink(pathname, buf, bufsize);
+}
 

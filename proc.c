@@ -19,6 +19,9 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+int symlink(const char*, const char*);
+int readlink(const char*, char* buf, size_t bufsize);
+
 
 void
 pinit(void)
@@ -144,7 +147,7 @@ userinit(void)
   p->egid = 0;
 
   safestrcpy(p->name, "initcode", sizeof(p->name));
-  p->cwd = namei("/");
+  p->cwd = namei("/",1);
 
   // this assignment to p->state lets other cores
   // run this process. the acquire forces the above

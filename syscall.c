@@ -120,6 +120,8 @@ extern int sys_seteuid(void);
 extern int sys_setegid(void);
 extern int sys_setreuid(void);
 extern int sys_setregid(void);
+extern int sys_symlink(void);
+extern int sys_readlink(void);
 
 
 
@@ -153,6 +155,8 @@ static int (*syscalls[])(void) = {
 [SYS_setegid] sys_setegid,
 [SYS_setreuid] sys_setreuid,
 [SYS_setregid] sys_setregid,
+[SYS_symlink] sys_symlink,
+[SYS_readlink]sys_readlink
 };
 
 void

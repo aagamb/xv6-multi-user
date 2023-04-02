@@ -10,6 +10,8 @@
 #include "sleeplock.h"
 #include "file.h"
 //#include "user.h"
+#define T_SYMLINK 4
+#define O_NO_DEREF  0x004
 
 struct devsw devsw[NDEV];
 struct {

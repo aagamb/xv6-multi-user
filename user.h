@@ -1,6 +1,6 @@
 struct stat;
 struct rtcdate;
-
+#include <stddef.h>
 
 //ALL USER TINGS HERE
 //ORIGINAL XV6 TINGS HERE
@@ -35,6 +35,8 @@ int seteuid(int);
 int setegid(int);
 int setreuid(int ruid, int euid);
 int setregid(int rgid, int egid);
+int symlink(const char*, const char*);
+int readlink(const char*, char*, size_t);
 
 // ulib.c
 int stat(const char*, struct stat*);
