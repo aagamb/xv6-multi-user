@@ -10,6 +10,7 @@
 #include "fs.h"
 #include "stat.h"
 #include "param.h"
+//#include "myuser.h"
 
 #ifndef static_assert
 #define static_assert(a, b) do { switch (0) case 0: case (a): ; } while (0)
@@ -38,7 +39,7 @@ void wsect(uint, void*);
 void winode(uint, struct dinode*);
 void rinode(uint inum, struct dinode *ip);
 void rsect(uint sec, void *buf);
-uint ialloc(ushort type);
+uint ialloc(ushort type, int uid, int gid);
 void iappend(uint inum, void *p, int n);
 
 // convert to intel byte order
@@ -68,7 +69,7 @@ int
 main(int argc, char *argv[])
 {
   int i, cc, fd;
-  uint rootino, inum, off;
+  uint rootino, etcino, inum, off;
   struct dirent de;
   char buf[BSIZE];
   struct dinode din;
@@ -114,7 +115,9 @@ main(int argc, char *argv[])
   memmove(buf, &sb, sizeof(sb));
   wsect(1, buf);
 
-  rootino = ialloc(T_DIR);
+
+  // Root/
+  rootino = ialloc(T_DIR,0,0);
   assert(rootino == ROOTINO);
 
   bzero(&de, sizeof(de));
@@ -126,6 +129,79 @@ main(int argc, char *argv[])
   de.inum = xshort(rootino);
   strcpy(de.name, "..");
   iappend(rootino, &de, sizeof(de));
+
+  //ETC
+  etcino = ialloc(T_DIR, 0,0);
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(etcino);
+  strcpy(de.name, ".");
+  iappend(etcino, &de, sizeof(de));
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(rootino);
+  strcpy(de.name, "..");
+  iappend(etcino, &de, sizeof(de));
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(etcino);
+  strcpy(de.name, "etc");
+  iappend(rootino, &de, sizeof(de));
+
+  //DEV
+  int devino = ialloc(T_DIR, 0, 0);
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(devino);
+  strcpy(de.name, ".");
+  iappend(devino, &de, sizeof(de));
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(rootino);
+  strcpy(de.name, "..");
+  iappend(devino, &de, sizeof(de));
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(devino);
+  strcpy(de.name, "dev");
+  iappend(rootino, &de, sizeof(de));
+
+  //home
+  int homeino = ialloc(T_DIR,0 ,0);
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(homeino);
+  strcpy(de.name, ".");
+  iappend(homeino, &de, sizeof(de));
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(rootino);
+  strcpy(de.name, "..");
+  iappend(homeino, &de, sizeof(de));
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(homeino);
+  strcpy(de.name, "home");
+  iappend(rootino, &de, sizeof(de));
+
+  //home/root
+  int hr = ialloc(T_DIR,0,0);
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(hr);
+  strcpy(de.name, ".");
+  iappend(hr, &de, sizeof(de));
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(homeino);
+  strcpy(de.name, "..");
+  iappend(hr, &de, sizeof(de));
+
+  bzero(&de, sizeof(de));
+  de.inum = xshort(hr);
+  strcpy(de.name, "dev");
+  iappend(homeino, &de, sizeof(de));
+
 
   for(i = 2; i < argc; i++){
     assert(index(argv[i], '/') == 0);
@@ -142,7 +218,7 @@ main(int argc, char *argv[])
     if(argv[i][0] == '_')
       ++argv[i];
 
-    inum = ialloc(T_FILE);
+    inum = ialloc(T_FILE, 0,0);
 
     bzero(&de, sizeof(de));
     de.inum = xshort(inum);
@@ -221,7 +297,7 @@ rsect(uint sec, void *buf)
 }
 
 uint
-ialloc(ushort type)
+ialloc(ushort type, int uid, int gid)
 {
   uint inum = freeinode++;
   struct dinode din;
@@ -230,6 +306,9 @@ ialloc(ushort type)
   din.type = xshort(type);
   din.nlink = xshort(1);
   din.size = xint(0);
+  din.uid = uid;
+  din.gid = gid;
+  din.mode = 0777;
   winode(inum, &din);
   return inum;
 }

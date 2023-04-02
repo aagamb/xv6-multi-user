@@ -1,6 +1,10 @@
 struct stat;
 struct rtcdate;
 
+
+//ALL USER TINGS HERE
+//ORIGINAL XV6 TINGS HERE
+
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
@@ -23,6 +27,14 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int login(char *username, char *password); 
+int setuid(int);
+int getuid();
+int geteuid();
+int seteuid(int);
+int setegid(int);
+int setreuid(int ruid, int euid);
+int setregid(int rgid, int egid);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -37,3 +49,4 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+

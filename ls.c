@@ -2,6 +2,21 @@
 #include "stat.h"
 #include "user.h"
 #include "fs.h"
+// #include "file.h"
+
+void convert_permissions_to_str(int permissions, char *output_str) {
+    const char *perm_chars = "rwx";
+
+    for (int i = 0; i < 3; ++i) {
+        int perm_set = (permissions >> (3 * (2 - i))) & 0b111;
+
+        for (int j = 0; j < 3; ++j) {
+            output_str[i * 3 + j] = (perm_set & (1 << (2 - j))) ? perm_chars[j] : '-';
+        }
+    }
+
+    output_str[9] = '\0';
+}
 
 char*
 fmtname(char *path)
@@ -54,6 +69,8 @@ ls(char *path)
     strcpy(buf, path);
     p = buf+strlen(buf);
     *p++ = '/';
+
+    printf(1, "The uid, euid: %d, %d \n", getuid(), geteuid());
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
       if(de.inum == 0)
         continue;
@@ -63,6 +80,11 @@ ls(char *path)
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
       }
+	char temp[100];
+	convert_permissions_to_str(st.mode, temp);
+  
+	printf(1, "%d %s:\t", getuid(), temp);
+
       printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
     }
     break;
@@ -79,7 +101,10 @@ main(int argc, char *argv[])
     ls(".");
     exit();
   }
+  int temp = geteuid();
+  seteuid(0);
   for(i=1; i<argc; i++)
     ls(argv[i]);
+  seteuid(temp);
   exit();
 }

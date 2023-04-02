@@ -138,6 +138,10 @@ userinit(void)
   p->tf->eflags = FL_IF;
   p->tf->esp = PGSIZE;
   p->tf->eip = 0;  // beginning of initcode.S
+  p->uid = 0;
+  p->euid =0;  
+  p->gid = 0;
+  p->egid = 0;
 
   safestrcpy(p->name, "initcode", sizeof(p->name));
   p->cwd = namei("/");
@@ -199,7 +203,11 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+  
+  np->uid = curproc->uid;
+  np->euid = curproc->euid;
 
+//  np->u = curproc->u;
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -392,7 +400,7 @@ yield(void)
 }
 
 // A fork child's very first scheduling by scheduler()
-// will swtch here.  "Return" to user space.
+// will swtch here.  "Return" to urser space.
 void
 forkret(void)
 {

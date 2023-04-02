@@ -89,3 +89,97 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int sys_getuid()
+{
+        return myproc()->uid;
+}
+
+int sys_geteuid()
+{
+        return myproc()->euid;
+}
+
+int sys_setuid()
+{
+  int uid;
+
+  if(argint(0, &uid) < 0)
+          return -1;
+
+  struct proc* p=myproc();
+  if(p->uid!=0)
+          return -1;
+
+  p->uid=uid;
+  p->euid=uid;
+
+  return 1;
+}
+
+int
+sys_seteuid(void)
+{
+  int euid;
+  if(argint(0, &euid) < 0)
+    return -1;
+
+  struct proc *curproc = myproc();
+
+  if (curproc->uid == 0) {
+    curproc->euid = euid;
+    return 0;
+  }
+  return -1;
+}
+
+int
+sys_setegid(void)
+{
+  int egid;
+  if(argint(0, &egid) < 0)
+    return -1;
+
+  struct proc *curproc = myproc();
+
+  if (curproc->uid == 0) {
+    curproc->egid = egid;
+    return 0;
+  }
+  return -1;
+}
+
+int
+sys_setreuid(void)
+{
+  int ruid, euid;
+  if(argint(0, &ruid) < 0 || argint(1, &euid) < 0)
+    return -1;
+
+  struct proc *curproc = myproc();
+
+  if (curproc->uid == 0) {
+    curproc->uid = ruid;
+    curproc->euid = euid;
+    return 0;
+  }
+  return -1;
+}
+
+int
+sys_setregid(void)
+{
+  int rgid, egid;
+  if(argint(0, &rgid) < 0 || argint(1, &egid) < 0)
+    return -1;
+
+  struct proc *curproc = myproc();
+
+  if (curproc->uid == 0) {
+    curproc->gid = rgid;
+    curproc->egid = egid;
+    return 0;
+  }
+  return -1;
+}
+

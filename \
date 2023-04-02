@@ -27,7 +27,6 @@ OBJS = \
 	uart.o\
 	vectors.o\
 	vm.o\
-	myuser.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -126,19 +125,6 @@ kernel: $(OBJS) entry.o entryother initcode kernel.ld
 	$(OBJDUMP) -S kernel > kernel.asm
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
 
-myuser.o: myuser.c
-	$(CC) $(CFLAGS) -c myuser.c
-
-$(KERN): $(OBJS) myuser.o
-	$(LD) $(LDFLAGS) -Ttext 0x100000 -e main -o kernel $(OBJS) myuser.o
-
-$(UPROGS)/*: $(UPROGS)/*.c $(LIBS)
-	$(MAKE) -C $(LIBDIR) $(LIBS)
-	$(CC) $(CFLAGS) -I$(INC) -o $@ $@.c $(LIBS)
-	$(OBJDUMP) -S $@ >$*.asm
-	$(OBJCOPY) -S -O binary $@ $*.o
-	$(MKFS) $(UPROGS)/kernel $*.o
-
 # kernelmemfs is a copy of kernel that maintains the
 # disk image in memory instead of writing to a disk.
 # This is not so useful for testing persistent storage or
@@ -163,9 +149,6 @@ _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
-
-newfile.o: newfile.c newfile.h
-	$(CC) $(CFLAGS) -c -o $@ $<
 
 _forktest: forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
@@ -200,14 +183,11 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_check\
+	_shadow\
 	_loginTest\
-	_myuser\
-	_adduser\
-	_whoami\
-	_testsyscalls
 
-fs.img: mkfs passwd README $(UPROGS)
-	./mkfs fs.img passwd README $(UPROGS)
+fs.img: mkfs shadow passwd README $(UPROGS)
+	./mkfs fs.img shadow passwd README $(UPROGS)
 
 
 -include *.d
@@ -275,7 +255,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
-	printf.c umalloc.c check.c shadow.c loginTest.c adduser.c whoami.c\
+	printf.c umalloc.c check.c shadow.c loginTest.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 

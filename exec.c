@@ -7,6 +7,16 @@
 #include "x86.h"
 #include "elf.h"
 
+char* strcat(char* dest, const char* source)
+{
+        char* ptr = dest + strlen(dest);
+        while (*source != '\0')
+                *ptr++ = *source++;
+        *ptr = '\0';
+        return dest;
+}
+
+
 int
 exec(char *path, char **argv)
 {
@@ -20,8 +30,11 @@ exec(char *path, char **argv)
   struct proc *curproc = myproc();
 
   begin_op();
+	
+char buf[50] = "/";
+strcat(buf, path);
 
-  if((ip = namei(path)) == 0){
+  if((ip = namei(buf)) == 0){
     end_op();
     cprintf("exec: fail\n");
     return -1;
@@ -88,7 +101,7 @@ exec(char *path, char **argv)
     goto bad;
 
   // Save program name for debugging.
-  for(last=s=path; *s; s++)
+  for(last=s=buf; *s; s++)
     if(*s == '/')
       last = s+1;
   safestrcpy(curproc->name, last, sizeof(curproc->name));

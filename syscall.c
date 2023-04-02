@@ -6,6 +6,15 @@
 #include "proc.h"
 #include "x86.h"
 #include "syscall.h"
+//#include "fcntl.h" // for open and O_RDONLY
+//#include "user.h"
+//#include "stat.h"
+
+
+
+//#include "unistd.h" // for read and sleep
+//#include "stdio.h" // for printf
+//#include "string.h" // for strcmp and strtok
 
 // User code makes a system call with INT T_SYSCALL.
 // System call number in %eax.
@@ -103,6 +112,16 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+extern int sys_login(void);
+extern int sys_setuid(void);
+extern int sys_getuid(void);
+extern int sys_geteuid(void);
+extern int sys_seteuid(void);
+extern int sys_setegid(void);
+extern int sys_setreuid(void);
+extern int sys_setregid(void);
+
+
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -126,6 +145,14 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_login]   sys_login,
+[SYS_setuid]  sys_setuid,
+[SYS_getuid]  sys_getuid,
+[SYS_geteuid] sys_geteuid,
+[SYS_seteuid] sys_seteuid,
+[SYS_setegid] sys_setegid,
+[SYS_setreuid] sys_setreuid,
+[SYS_setregid] sys_setregid,
 };
 
 void

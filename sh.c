@@ -1,4 +1,4 @@
-// Shell.
+ // Shell.
 
 #include "types.h"
 #include "user.h"
@@ -12,6 +12,10 @@
 #define BACK  5
 
 #define MAXARGS 10
+
+#define MAX_LINES 10
+#define MAX_TOKENS 100
+#define MAX_TOKEN_LENGTH 100
 
 struct cmd {
   int type;
