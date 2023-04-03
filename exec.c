@@ -29,27 +29,23 @@ exec(char *path, char **argv)
   struct proghdr ph;
   pde_t *pgdir, *oldpgdir;
   struct proc *curproc = myproc();
-   char pathname[LINK_LIMIT]; 
+  char pathname[LINK_LIMIT]; 
 
   begin_op();
-     if (read_symlink(path, pathname, LINK_LIMIT) == 0)
- {
-    if ((ip = namei(pathname,1)) == 0)
-    {
-      end_op();
-      cprintf("exec: fail\n");
-      return -1;
-    }
+  if (read_symlink(path, pathname, LINK_LIMIT) == 0) {
+      if ((ip = namei(pathname,1)) == 0) {
+          end_op();
+          cprintf("exec: failed to open symlink file '%s'\n", pathname);
+          return -1;
+      }
   }
-    else
-  {
-    if ((ip = namei(path,1)) == 0) // ??
-    {
-      end_op();
-      cprintf("exec: fail\n");
-      return -1;
-    }
-}
+  //  else {
+  //     if ((ip = namei(path,1)) == 0) {
+  //         end_op();
+  //         cprintf("exec: failed to open file '%s'\n", path);
+  //         return -1;
+  //     }
+  // }
 
 char buf[50] = "/";
 strcat(buf, path);
