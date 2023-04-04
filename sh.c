@@ -12,7 +12,7 @@
 #define BACK  5
 
 #define MAXARGS 10
-
+#define BINPATHLEN 20
 #define MAX_LINES 10
 #define MAX_TOKENS 100
 #define MAX_TOKEN_LENGTH 100
@@ -20,6 +20,19 @@
 struct cmd {
   int type;
 };
+char*
+safestrcpy(char *s, const char *t, int n)
+{
+  char *os;
+
+  os = s;
+  if(n <= 0)
+    return os;
+  while(--n > 0 && (*s++ = *t++) != 0)
+    ;
+  *s = 0;
+  return os;
+}
 
 struct execcmd {
   int type;
@@ -62,6 +75,7 @@ void
 runcmd(struct cmd *cmd)
 {
   int p[2];
+  char binpath[BINPATHLEN];
   struct backcmd *bcmd;
   struct execcmd *ecmd;
   struct listcmd *lcmd;
@@ -79,6 +93,9 @@ runcmd(struct cmd *cmd)
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit();
+      strcpy(binpath, "/bin/");
+	safestrcpy(binpath + 5, ecmd->argv[0], 14);
+	
     exec(ecmd->argv[0], ecmd->argv);
     printf(2, "exec %s failed\n", ecmd->argv[0]);
     break;
@@ -152,7 +169,7 @@ main(void)
   int fd;
 
   // Ensure that three file descriptors are open.
-  while((fd = open("console", O_RDWR)) >= 0){
+  while((fd = open("/dev/console", O_RDWR)) >= 0){
     if(fd >= 3){
       close(fd);
       break;

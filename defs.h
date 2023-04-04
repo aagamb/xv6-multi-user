@@ -11,6 +11,9 @@ struct sleeplock;
 struct stat;
 struct superblock;
 
+void		devnullinit(void);
+void		devzeroinit(void);
+
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);
