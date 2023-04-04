@@ -30,6 +30,7 @@ OBJS = \
 	myuser.o\
 	devnull.o\
 	devzero.o\
+	
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -209,6 +210,8 @@ UPROGS=\
 	_testsyscalls\
 	_devzerotest\
 	_devnulltest\
+	_pwd\
+	
 
 fs.img: mkfs passwd README $(UPROGS)
 	./mkfs fs.img passwd README $(UPROGS)
