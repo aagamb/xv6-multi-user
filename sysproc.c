@@ -104,6 +104,10 @@ int sys_setuid()
 {
   int uid;
 
+  if(myproc()->uid != 0){
+        return -1;
+  }
+
   if(argint(0, &uid) < 0)
           return -1;
 

@@ -17,6 +17,26 @@
 #include "fcntl.h"
 
 #define LINK_LIMIT 50
+#define USER_R_BIT   1
+#define USER_W_BIT   2
+#define USER_X_BIT   3
+#define GROUP_R_BIT  4
+#define GROUP_W_BIT  5
+#define GROUP_X_BIT  6
+#define OTHER_R_BIT  7
+#define OTHER_W_BIT  8
+#define OTHER_X_BIT  9
+
+void integer_to_binary(unsigned int in, int count, int* out)
+{
+    unsigned int mask = 1U << (count-1);
+    int i;
+    for (i = 0; i < count; i++) {
+        out[i] = (in & mask) ? 1 : 0;
+        in <<= 1;
+    }
+}
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -266,64 +286,60 @@ bad:
   return -1;
 }
 
-int checkWritePermission(char* path) {
-    // If the current user can access the parent, they can access the files inside it
-    char parent[16];
-    struct inode* inodeParent = nameiparent(path, parent);
+// int checkWritePermission(char* path) {
+//     // If the current user can access the parent, they can access the files inside it
+//     char parent[16];
+//     struct inode* inodeParent = nameiparent(path, parent);
 
-    // int uidParent = inodeParent->uid;
-    // int gidParent = inodeParent->gid;
-    int modeParent = inodeParent->mode;
+//     // int uidParent = inodeParent->uid;
+//     // int gidParent = inodeParent->gid;
+//     int modeParent = inodeParent->mode;
 
-    // Check the read permission bits for user, group, and others
-    // int modeReading = 0b100100100;
+//     // Check the read permission bits for user, group, and others
+//     // int modeReading = 0b100100100;
 
     
 
-    if (myproc()->euid == 0) {
-        // Root user can read all files
-        return 1;
-    } else if ((modeParent & 0200)) {
-        // File owner has read permission
-        return 1;
-        // gidParent == myproc()->egid && 
-    } else if ((modeParent & 0020)) {
-        // Group has read permission
-        return 1;
-    } else if (modeParent & 0002) {
-        // Others have read permission
-        return 1;
-    }
-    return -1;
-}
+//     if (myproc()->euid == 0) {
+//         // Root user can read all files
+//         return 1;
+//     } else if ((modeParent & 0200)) {
+//         // File owner has read permission
+//         return 1;
+//         // gidParent == myproc()->egid && 
+//     } else if ((modeParent & 0020)) {
+//         // Group has read permission
+//         return 1;
+//     } else if (modeParent & 0002) {
+//         // Others have read permission
+//         return 1;
+//     }
+//     return -1;
+// }
 
-int checkReadPermission(char* path) {
-    // If the current user can access the parent, they can access the files inside it
-    char parent[16];
-    struct inode* inodeParent = nameiparent(path, parent);
+// int checkReadPermission(char* path) {
+//     // If the current user can access the parent, they can access the files inside it
+//     char parent[16];
+//     struct inode* inodeParent = nameiparent(path, parent);
 
-    int uidParent = inodeParent->uid;
-    int gidParent = inodeParent->gid;
-    int modeParent = inodeParent->mode;
+//     int uidParent = inodeParent->uid;
+//     int modeParent = inodeParent->mode;
 
-    // Check the read permission bits for user, group, and others
-    // int modeReading = 0b100100100;
+//     // Check the read permission bits for user, group, and others
+//     // int modeReading = 0b100100100;
 
-    if (myproc()->euid == 0) {
-        // Root user can read all files
-        return 1;
-    } else if (uidParent == myproc()->euid && (modeParent & 0400)) {
-        // File owner has read permission
-        return 1;
-    } else if (gidParent == myproc()->egid && (modeParent & 0040)) {
-        // Group has read permission
-        return 1;
-    } else if (modeParent & 0004) {
-        // Others have read permission
-        return 1;
-    }
-    return -1;
-}
+//     if (myproc()->euid == 0) {
+//         // Root user can read all files
+//         return 1;
+//     } else if (uidParent == myproc()->euid && (modeParent & 0400)) {
+//         // File owner has read permission
+//         return 1;
+//     } else if (modeParent & 0004) {
+//         // Others have read permission
+//         return 1;
+//     }
+//     return -1;
+// }
 
 int checkExecutePermission(char* path) {
     // If the current user can access the parent, they can access the files inside it
@@ -331,7 +347,6 @@ int checkExecutePermission(char* path) {
     struct inode* inodeParent = nameiparent(path, parent);
 
     int uidParent = inodeParent->uid;
-    int gidParent = inodeParent->gid;
     int modeParent = inodeParent->mode;
 
   
@@ -341,9 +356,6 @@ int checkExecutePermission(char* path) {
     } else if (uidParent == myproc()->euid && (modeParent & 0100)) {
         // File owner has execute permission
         return 1;
-    } else if (gidParent == myproc()->egid && (modeParent & 0010)) {
-        // Group has execute permission
-        return 1;
     } else if (modeParent & 0001) {
         // Others have execute permission
         return 1;
@@ -352,16 +364,16 @@ int checkExecutePermission(char* path) {
 }
 
 static struct inode*
-create(char *path, short type, short major, short minor)
+create(char *path, short type, short major, short minor, int uid, int mode)
 {
   struct inode *ip, *dp;
   char name[DIRSIZ];
 
-  if(checkWritePermission(path)<0){
-    // printf(1, "checkWritePermission Failed\n");
-    panic("checkWritePermission failed\n");
-    return NULL;
-  }
+  // if(checkWritePermission(path)<0){
+  //   // printf(1, "checkWritePermission Failed\n");
+  //   panic("checkWritePermission failed\n");
+  //   return NULL;
+  // }
     
 
   if((dp = nameiparent(path, name)) == 0)
@@ -377,7 +389,7 @@ create(char *path, short type, short major, short minor)
     return 0;
   }
 
-  if((ip = ialloc(dp->dev, type)) == 0)
+  if((ip = ialloc(dp->dev, type,uid,mode)) == 0)
     panic("create: ialloc");
 
   ilock(ip);
@@ -414,26 +426,26 @@ sys_open(void)
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;
  
-  if (myproc()->euid !=0){
-    if( omode == O_WRONLY || omode == O_RDWR || omode == O_CREATE){
-      if(checkWritePermission(path)<0){
-        return -1;
-      }
-    }
+  // if (myproc()->euid !=0){
+  //   if( omode == O_WRONLY || omode == O_RDWR || omode == O_CREATE){
+  //     if(checkWritePermission(path)<0){
+  //       return -1;
+  //     }
+  //   }
       
     
-    if(omode == O_RDONLY || omode == O_RDWR){
-      if(checkReadPermission(path)<0){
-        return -1;
-      }
-    }
+  //   if(omode == O_RDONLY || omode == O_RDWR){
+  //     if(checkReadPermission(path)<0){
+  //       return -1;
+  //     }
+  //   }
     
-  }
+  // }
 
   begin_op();
 
   if(omode & O_CREATE){
-    ip = create(path, T_FILE, 0, 0);
+    ip = create(path, T_FILE, 0, 0, myproc()->uid, 0644);
     if(ip == 0){
       end_op();
       return -1;
@@ -476,6 +488,54 @@ sys_open(void)
     }
     
     }
+
+    int bits[10];
+        integer_to_binary(ip -> mode, 10, bits);
+
+        struct proc *currproc = myproc();
+        int fileowner = ip -> uid == currproc -> euid;
+        int other = (fileowner != 1);
+        int invalid = 0;
+        
+        if (omode == O_RDWR) {
+                if (fileowner) {
+                        if (!bits[USER_R_BIT] || !bits[USER_W_BIT])
+                                invalid = 1;
+                } 
+                else if (other) {
+                        if (!bits[OTHER_R_BIT])
+                                invalid = 1;
+                }
+        } else if (omode == O_RDONLY) {
+                if (fileowner) {
+                        if (!bits[USER_R_BIT])
+                                invalid = 1;
+                } 
+                else if (other) {
+                        if (!bits[OTHER_R_BIT])
+                                invalid = 1;
+                }
+        } else if (omode == O_WRONLY) {
+                if (fileowner) {
+                        if (!bits[USER_W_BIT])
+                                invalid = 1;
+                }
+                else if (other) {
+                        if (!bits[OTHER_W_BIT])
+                                invalid = 1;
+                }
+	}
+
+        // If we're root, invalid is not important
+        invalid = currproc -> euid == 0 ? 0 : invalid;
+
+        if (invalid) {
+                cprintf("%s: Permission denied\n", path);
+                iunlockput(ip);
+                end_op();
+                return -1;
+        }
+
   
     
   
@@ -505,7 +565,7 @@ sys_mkdir(void)
   struct inode *ip;
 
   begin_op();
-  if(argstr(0, &path) < 0 || (ip = create(path, T_DIR, 0, 0)) == 0){
+  if(argstr(0, &path) < 0 || (ip = create(path, T_DIR, 0, 0, myproc()->uid, 0644)) == 0){
     // panic("error here");
     end_op();
     return -1;
@@ -519,14 +579,49 @@ int
 sys_mknod(void)
 {
   struct inode *ip;
+  struct inode *parent;
+  char name[14];
   char *path;
   int major, minor;
+
+  int bits[10];
+  parent = nameiparent(path, name);
+	integer_to_binary(parent -> mode, 10, bits);
+
+	int fileowner = parent -> uid == myproc() -> euid;
+	int groupmember = 0;
+
+	int other = fileowner != 1 && groupmember != 1;
+	int invalid = 0;
+
+	if (fileowner) {
+		if (!bits[USER_W_BIT])
+			invalid = 1;
+	} else if (groupmember) {
+		if (!bits[GROUP_W_BIT])
+			invalid = 1;
+	}
+	else if (other) {
+		if (!bits[OTHER_W_BIT])
+			invalid = 1;
+	}
+
+	// If we're root, invalid is not important
+	invalid = myproc() -> euid == 0 ? 0 : invalid;
+
+	if (invalid) {
+		cprintf("%s: Permission denied\n", path);
+		iunlockput(ip);
+		end_op();
+		return -1;
+	}
+
 
   begin_op();
   if((argstr(0, &path)) < 0 ||
      argint(1, &major) < 0 ||
      argint(2, &minor) < 0 ||
-     (ip = create(path, T_DEV, major, minor)) == 0){
+     (ip = create(path, T_DEV, major, minor, myproc()->uid, 0644)) == 0){
     end_op();
     return -1;
   }
@@ -563,8 +658,11 @@ sys_chdir(void)
   }
 
   
+
+  
   if(checkExecutePermission(path)<0){
     end_op();
+    cprintf("My function failed\n");
     return -1;
   }
   
@@ -574,6 +672,35 @@ sys_chdir(void)
     end_op();
     return -1;
   }
+
+  int bits[10];
+	integer_to_binary(ip -> mode, 10, bits);
+	int hasperm = 0;
+
+	int fileowner = ip -> uid == curproc -> euid;
+	int other = fileowner != 1;
+  cprintf("Fileowner, other: %d, %d\n", fileowner, other);
+	int invalid = 0;
+	if (fileowner) {
+		if (ip->mode && 0100)
+			invalid = 0;
+	} 
+	else if (other) {
+		if (ip->mode && 0001)
+			invalid = 0;
+	}
+
+	// If we're root, invalid is not important
+	invalid = curproc -> euid == 0 ? 0 : invalid;
+
+	if (invalid) {
+		cprintf("%s: Permission denied\n", path);
+		iunlockput(ip);
+		end_op();
+		return -1;
+	}
+
+
   iunlock(ip);
   iput(curproc->cwd);
   end_op();
@@ -667,7 +794,7 @@ create_symlink(const char* oldpath , const char* newpath)
 
   begin_op();
 
-  if((ip = create((char*)newpath, T_SYMLINK, 0, 0)) == 0)
+  if((ip = create((char*)newpath, T_SYMLINK, 0, 0, myproc()->uid, 0644)) == 0)
   {
     end_op();
     return -1;

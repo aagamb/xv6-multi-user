@@ -211,10 +211,11 @@ UPROGS=\
 	_devzerotest\
 	_devnulltest\
 	_pwd\
+	_addgroup\
 	
 
-fs.img: mkfs passwd README $(UPROGS)
-	./mkfs fs.img passwd README $(UPROGS)
+fs.img: mkfs passwd group README $(UPROGS)
+	./mkfs fs.img passwd group README $(UPROGS)
 
 
 -include *.d
@@ -282,7 +283,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
-	printf.c umalloc.c check.c shadow.c loginTest.c adduser.c whoami.c\
+	printf.c umalloc.c check.c shadow.c loginTest.c adduser.c whoami.c addgroup.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 

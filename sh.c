@@ -72,7 +72,7 @@ struct cmd *parsecmd(char*);
 
 // Execute cmd.  Never returns.
 void
-runcmd(struct cmd *cmd)
+runcmd(struct cmd *cmd, int uid)
 {
   int p[2];
   char binpath[BINPATHLEN];
@@ -95,6 +95,7 @@ runcmd(struct cmd *cmd)
       exit();
       strcpy(binpath, "/bin/");
 	safestrcpy(binpath + 5, ecmd->argv[0], 14);
+  setuid(uid);
 	
     exec(ecmd->argv[0], ecmd->argv);
     printf(2, "exec %s failed\n", ecmd->argv[0]);
@@ -107,15 +108,15 @@ runcmd(struct cmd *cmd)
       printf(2, "open %s failed\n", rcmd->file);
       exit();
     }
-    runcmd(rcmd->cmd);
+    runcmd(rcmd->cmd, uid);
     break;
 
   case LIST:
     lcmd = (struct listcmd*)cmd;
     if(fork1() == 0)
-      runcmd(lcmd->left);
+      runcmd(lcmd->left, uid);
     wait();
-    runcmd(lcmd->right);
+    runcmd(lcmd->right, uid);
     break;
 
   case PIPE:
@@ -127,14 +128,14 @@ runcmd(struct cmd *cmd)
       dup(p[1]);
       close(p[0]);
       close(p[1]);
-      runcmd(pcmd->left);
+      runcmd(pcmd->left, uid);
     }
     if(fork1() == 0){
       close(0);
       dup(p[0]);
       close(p[0]);
       close(p[1]);
-      runcmd(pcmd->right);
+      runcmd(pcmd->right,uid);
     }
     close(p[0]);
     close(p[1]);
@@ -145,7 +146,7 @@ runcmd(struct cmd *cmd)
   case BACK:
     bcmd = (struct backcmd*)cmd;
     if(fork1() == 0)
-      runcmd(bcmd->cmd);
+      runcmd(bcmd->cmd, uid);
     break;
   }
   exit();
@@ -185,8 +186,9 @@ main(void)
         printf(2, "cannot cd %s\n", buf+3);
       continue;
     }
+    int uid = getuid();
     if(fork1() == 0)
-      runcmd(parsecmd(buf));
+      runcmd(parsecmd(buf), uid);
     wait();
   }
   exit();

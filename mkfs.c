@@ -39,7 +39,7 @@ void wsect(uint, void*);
 void winode(uint, struct dinode*);
 void rinode(uint inum, struct dinode *ip);
 void rsect(uint sec, void *buf);
-uint ialloc(ushort type, int uid, int gid);
+uint ialloc(ushort type, int uid, int gid, int mode);
 void iappend(uint inum, void *p, int n);
 
 // convert to intel byte order
@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 
 
   // Root/
-  rootino = ialloc(T_DIR,0,0);
+  rootino = ialloc(T_DIR,0,0, 0777);
   assert(rootino == ROOTINO);
 
   bzero(&de, sizeof(de));
@@ -131,7 +131,7 @@ main(int argc, char *argv[])
   iappend(rootino, &de, sizeof(de));
 
   //ETC
-  etcino = ialloc(T_DIR, 0,0);
+  etcino = ialloc(T_DIR, 0,0, 0777);
 
   bzero(&de, sizeof(de));
   de.inum = xshort(etcino);
@@ -149,7 +149,7 @@ main(int argc, char *argv[])
   iappend(rootino, &de, sizeof(de));
 
   //DEV
-  int devino = ialloc(T_DIR, 0, 0);
+  int devino = ialloc(T_DIR, 0, 0, 0777);
 
   bzero(&de, sizeof(de));
   de.inum = xshort(devino);
@@ -167,7 +167,7 @@ main(int argc, char *argv[])
   iappend(rootino, &de, sizeof(de));
 
   //home
-  int homeino = ialloc(T_DIR,0 ,0);
+  int homeino = ialloc(T_DIR,0 ,0, 0777);
 
   bzero(&de, sizeof(de));
   de.inum = xshort(homeino);
@@ -185,7 +185,7 @@ main(int argc, char *argv[])
   iappend(rootino, &de, sizeof(de));
 
   //home/root
-  int hr = ialloc(T_DIR,0,0);
+  int hr = ialloc(T_DIR,0,0, 0777);
 
   bzero(&de, sizeof(de));
   de.inum = xshort(hr);
@@ -218,7 +218,7 @@ main(int argc, char *argv[])
     if(argv[i][0] == '_')
       ++argv[i];
 
-    inum = ialloc(T_FILE, 0,0);
+    inum = ialloc(T_FILE, 0,0, 0777);
 
     bzero(&de, sizeof(de));
     de.inum = xshort(inum);
@@ -297,7 +297,7 @@ rsect(uint sec, void *buf)
 }
 
 uint
-ialloc(ushort type, int uid, int gid)
+ialloc(ushort type, int uid, int gid, int mode)
 {
   uint inum = freeinode++;
   struct dinode din;
@@ -306,9 +306,9 @@ ialloc(ushort type, int uid, int gid)
   din.type = xshort(type);
   din.nlink = xshort(1);
   din.size = xint(0);
-  din.uid = uid;
-  din.gid = gid;
-  din.mode = 0777;
+  din.uid = xint(uid);
+  din.gid = xint(gid);
+  din.mode = xint(mode);
   winode(inum, &din);
   return inum;
 }

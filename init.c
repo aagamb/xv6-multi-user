@@ -12,6 +12,13 @@ main(void)
 {
   int pid, wpid;
 
+  if(getpid() != 1){
+  	printf(2, "init has already been called");
+	  exit();
+  }
+
+  setuid(0);
+
   if(open("console", O_RDWR) < 0){
     mknod("console", 1, 1);
     open("console", O_RDWR);
