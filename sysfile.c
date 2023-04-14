@@ -341,27 +341,27 @@ bad:
 //     return -1;
 // }
 
-int checkExecutePermission(char* path) {
-    // If the current user can access the parent, they can access the files inside it
-    char parent[16];
-    struct inode* inodeParent = nameiparent(path, parent);
+// int checkExecutePermission(char* path) {
+//     // If the current user can access the parent, they can access the files inside it
+//     char parent[16];
+//     struct inode* inodeParent = nameiparent(path, parent);
 
-    int uidParent = inodeParent->uid;
-    int modeParent = inodeParent->mode;
+//     int uidParent = inodeParent->uid;
+//     int modeParent = inodeParent->mode;
 
   
-    if (myproc()->euid == 0) {
-        // Root user can execute all files
-        return 1;
-    } else if (uidParent == myproc()->euid && (modeParent & 0100)) {
-        // File owner has execute permission
-        return 1;
-    } else if (modeParent & 0001) {
-        // Others have execute permission
-        return 1;
-    }
-    return -1;
-}
+//     if (myproc()->euid == 0) {
+//         // Root user can execute all files
+//         return 1;
+//     } else if (uidParent == myproc()->euid && (modeParent & 0100)) {
+//         // File owner has execute permission
+//         return 1;
+//     } else if (modeParent & 0001) {
+//         // Others have execute permission
+//         return 1;
+//     }
+//     return -1;
+// }
 
 static struct inode*
 create(char *path, short type, short major, short minor, int uid, int mode)
@@ -396,7 +396,7 @@ create(char *path, short type, short major, short minor, int uid, int mode)
   ip->major = major;
   ip->minor = minor;
   ip->nlink = 1;
-  ip->mode = 0644;
+  ip->mode = 00644;
   iupdate(ip);
 
   if(type == T_DIR){  // Create . and .. entries.
@@ -445,7 +445,7 @@ sys_open(void)
   begin_op();
 
   if(omode & O_CREATE){
-    ip = create(path, T_FILE, 0, 0, myproc()->uid, 0644);
+    ip = create(path, T_FILE, 0, 0, myproc()->uid, 00644);
     if(ip == 0){
       end_op();
       return -1;
@@ -565,7 +565,7 @@ sys_mkdir(void)
   struct inode *ip;
 
   begin_op();
-  if(argstr(0, &path) < 0 || (ip = create(path, T_DIR, 0, 0, myproc()->uid, 0644)) == 0){
+  if(argstr(0, &path) < 0 || (ip = create(path, T_DIR, 0, 0, myproc()->uid, 00644)) == 0){
     // panic("error here");
     end_op();
     return -1;
@@ -621,7 +621,7 @@ sys_mknod(void)
   if((argstr(0, &path)) < 0 ||
      argint(1, &major) < 0 ||
      argint(2, &minor) < 0 ||
-     (ip = create(path, T_DEV, major, minor, myproc()->uid, 0644)) == 0){
+     (ip = create(path, T_DEV, major, minor, myproc()->uid, 00644)) == 0){
     end_op();
     return -1;
   }
@@ -660,11 +660,11 @@ sys_chdir(void)
   
 
   
-  if(checkExecutePermission(path)<0){
-    end_op();
-    cprintf("My function failed\n");
-    return -1;
-  }
+  // if(checkExecutePermission(path)<0){
+  //   end_op();
+  //   cprintf("My function failed\n");
+  //   return -1;
+  // }
   
   ilock(ip);
   if(ip->type != T_DIR){
@@ -794,7 +794,7 @@ create_symlink(const char* oldpath , const char* newpath)
 
   begin_op();
 
-  if((ip = create((char*)newpath, T_SYMLINK, 0, 0, myproc()->uid, 0644)) == 0)
+  if((ip = create((char*)newpath, T_SYMLINK, 0, 0, myproc()->uid, 00644)) == 0)
   {
     end_op();
     return -1;
@@ -871,4 +871,34 @@ read_symlink(const char* pathname, char* buf, size_t bufsize)
   
 }
 
+int sys_chmod(void) {
+    char *path;
+    int mode;
+
+    if (argstr(0, &path) < 0 || argint(1, &mode) < 0) {
+        return -1;
+    }
+
+    struct inode *ip;
+    begin_op();
+    if ((ip = namei(path,0)) == 0) {
+        end_op();
+        return -1;
+    }
+    ilock(ip);
+
+    // Check if the user is the owner of the file or the superuser
+    if (ip->uid != myproc()->uid && myproc()->uid != 0) {
+        iunlockput(ip);
+        end_op();
+        return -1;
+    }
+
+    // Clear the previous permission bits, setuid, and setgid bits, and apply the new mode
+    ip->mode = (ip->mode & ~(0777 | S_ISUID | S_ISGID)) | mode;
+    iupdate(ip);
+    iunlockput(ip);
+    end_op();
+    return 0;
+}
 

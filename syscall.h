@@ -30,3 +30,4 @@
 #define SYS_setregid 29
 #define SYS_symlink  30
 #define SYS_readlink 31
+#define SYS_chmod 32

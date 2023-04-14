@@ -7,16 +7,31 @@
 void convert_permissions_to_str(int permissions, char *output_str) {
     const char *perm_chars = "rwx";
 
+    
+
+    // Convert the permissions to a string
     for (int i = 0; i < 3; ++i) {
         int perm_set = (permissions >> (3 * (2 - i))) & 0b111;
-
         for (int j = 0; j < 3; ++j) {
             output_str[i * 3 + j] = (perm_set & (1 << (2 - j))) ? perm_chars[j] : '-';
         }
     }
 
+    // Check if the setuid bit is set and update the user's x bit accordingly
+    if (permissions & 04000) {
+        output_str[2] = (output_str[2] == 'x') ? 's' : 'S';
+    }
+
+    // Check if the setgid bit is set and update the group's x bit accordingly
+    if (permissions & 02000) {
+        output_str[5] = (output_str[5] == 'x') ? 's' : 'S';
+    } 
+
     output_str[9] = '\0';
 }
+
+
+
 
 char*
 fmtname(char *path)

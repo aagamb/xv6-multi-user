@@ -37,7 +37,7 @@ int setreuid(int ruid, int euid);
 int setregid(int rgid, int egid);
 int symlink(const char*, const char*);
 int readlink(const char*, char*, size_t);
-
+int chmod(const char*, int mode);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

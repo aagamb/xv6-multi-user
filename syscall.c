@@ -122,7 +122,7 @@ extern int sys_setreuid(void);
 extern int sys_setregid(void);
 extern int sys_symlink(void);
 extern int sys_readlink(void);
-
+extern int sys_chmod(void);
 
 
 static int (*syscalls[])(void) = {
@@ -155,8 +155,9 @@ static int (*syscalls[])(void) = {
 [SYS_setegid] sys_setegid,
 [SYS_setreuid] sys_setreuid,
 [SYS_setregid] sys_setregid,
-[SYS_symlink] sys_symlink,
-[SYS_readlink]sys_readlink
+[SYS_symlink]  sys_symlink,
+[SYS_readlink] sys_readlink,
+[SYS_chmod]    sys_chmod,
 };
 
 void
