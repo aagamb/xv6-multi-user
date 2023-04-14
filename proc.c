@@ -206,7 +206,8 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
-  
+np->uid = curproc->uid;
+np->euid = curproc->euid;  
 //  np->uid = curproc->uid;
 //  np->euid = curproc->euid;
 
@@ -259,7 +260,9 @@ exit(void)
   curproc->cwd = 0;
 
   acquire(&ptable.lock);
-
+  // if (curproc->exec_inode) {
+  //   iput(curproc->exec_inode);
+  // }
   // Parent might be sleeping in wait().
   wakeup1(curproc->parent);
 
@@ -274,6 +277,7 @@ exit(void)
 
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
+  
   sched();
   panic("zombie exit");
 }

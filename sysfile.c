@@ -902,3 +902,52 @@ int sys_chmod(void) {
     return 0;
 }
 
+int sys_setuid(void) {
+  int uid;
+
+  if (argint(0, &uid) < 0) {
+    return -1;
+  }
+
+  struct inode *ip = myproc()->exec_inode;
+  // ilock(ip);
+  if ((ip->mode & 04000) || (ip->mode & 02000)) {
+    myproc()->euid = uid;
+    myproc()->uid = uid;
+    // iunlock(ip);
+    return 0;
+  }
+  // iunlock(ip);
+
+  if (uid != 0 && uid != myproc()->uid) {
+    if (myproc()->euid != 0) {
+      return -1;
+    }
+  }
+
+  myproc()->uid = uid;
+  myproc()->euid = uid;
+
+  return 0;
+}
+
+int
+sys_seteuid(void)
+{
+  int euid;
+  if(argint(0, &euid) < 0)
+    return -1;
+
+  struct proc *curproc = myproc();
+  struct inode *ip = myproc()->exec_inode;
+
+  // ilock(ip);
+  if (curproc->uid == 0 || (ip->mode & 04000) || (ip->mode & 02000)) {
+    curproc->euid = euid;
+    // iunlock(ip);
+    return 0;
+  }
+  // iunlock(ip);
+
+  return -1;
+}

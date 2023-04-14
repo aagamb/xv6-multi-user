@@ -89,22 +89,28 @@ int main(int argc, char *argv[]) {
         exit();
     }
 
+    
+
     // Change effective user ID
     if (seteuid(target_uid) < 0) {
         printf(1, "Error: Failed to set effective user ID\n");
         exit();
     }
 
+    // Change user ID
+    if (setuid(target_uid) < 0) {
+        printf(1, "Error: Failed to set user ID\n");
+        exit();
+    }
+
     // Start a new shell with the new effective user ID
     char *shell_argv[] = {"sh", 0};
-    
-    printf(1, "Homedir: %s\n\n", home_dir);
 
-    seteuid(uid);
-    setegid(gid);
+    //TODO: DO WE HAVE TO IMPLEMENT SETGID?
+    // setgid(gid);
 
     chdir(home_dir);
-        printf(1, "uid, gid: %d %d\n", uid, gid);
+        printf(1, "From su.c-   uid, euid: %d %d\n", getuid(), geteuid());
     exec("sh", shell_argv);
 
 

@@ -54,6 +54,8 @@ struct proc {
   int euid;
   int gid;
   int egid;
+  struct inode *exec_inode;
+
 };
 
 // Process memory is laid out contiguously, low addresses first:

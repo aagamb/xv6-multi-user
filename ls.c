@@ -30,9 +30,6 @@ void convert_permissions_to_str(int permissions, char *output_str) {
     output_str[9] = '\0';
 }
 
-
-
-
 char*
 fmtname(char *path)
 {
@@ -116,10 +113,9 @@ main(int argc, char *argv[])
     ls(".");
     exit();
   }
-  int temp = geteuid();
-  seteuid(0);
+
   for(i=1; i<argc; i++)
     ls(argv[i]);
-  seteuid(temp);
+
   exit();
 }

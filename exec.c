@@ -86,6 +86,7 @@ strcat(buf, path);
       goto bad;
   }
   iunlockput(ip);
+  curproc->exec_inode = idup(ip);
   end_op();
   ip = 0;
 

@@ -18,6 +18,7 @@ main(void)
   }
 
   setuid(0);
+  chmod("/su", 04000);
 
   if(open("console", O_RDWR) < 0){
     mknod("console", 1, 1);
