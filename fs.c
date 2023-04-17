@@ -696,3 +696,10 @@ nameiparent(char *path, char *name)
 {
   return namex(0, path, 1, name, 0, 1);
 } 
+
+struct inode*
+get_inode_by_num(uint dev, uint inum)
+{
+  return iget(dev, inum);
+}
+

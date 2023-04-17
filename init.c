@@ -26,7 +26,7 @@ main(void)
   }
   dup(0);  // stdout
   dup(0);  // stderr
-  	mknod("/dev/null", 2, 1);
+  mknod("/dev/null", 2, 1);
 	mknod("/dev/zero", 3, 1);
 
   for(;;){

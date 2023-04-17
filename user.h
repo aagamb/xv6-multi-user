@@ -38,6 +38,9 @@ int setregid(int rgid, int egid);
 int symlink(const char*, const char*);
 int readlink(const char*, char*, size_t);
 int chmod(const char*, int mode);
+int chdotuid(int inum, int uid);
+int mkdir2(const char*, int uid);
+
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

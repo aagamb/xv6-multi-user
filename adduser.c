@@ -69,7 +69,7 @@ struct user* createUser(char username[]){
     char dir[100];
     strcpy(dir, "/home/");
     strcat(dir, username);
-    mkdir(dir);
+    // mkdir(dir);
 
     struct user* u = (struct user*) malloc(sizeof(struct user));
     strcpy(u->username, username);
@@ -288,6 +288,20 @@ void printUserArray(){
     // exit();
 }
 
+void create_dot_path(char *dir_path, char *dot_path) {
+    int i = 0;
+    while (dir_path[i] != '\0') {
+        dot_path[i] = dir_path[i];
+        i++;
+    }
+    dot_path[i] = '/';
+    i++;
+    dot_path[i] = '.';
+    i++;
+    dot_path[i] = '\0';
+}
+
+
 int main(int argc, char* argv[]){
 
     if (argc<2){
@@ -301,7 +315,8 @@ int main(int argc, char* argv[]){
     struct user* u = createUser(argv[1]);
 
     printf(1, "%s\n", u->homedir);
-    mkdir(u->homedir);
+    mkdir2(u->homedir, u->uid);
+    printf(1, "uid is: %d\n", u->uid);
 	addUserToPasswd(u);
     
     // printUserArray();

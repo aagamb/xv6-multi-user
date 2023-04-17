@@ -59,3 +59,5 @@ struct dirent {
   char name[DIRSIZ];
 };
 
+struct inode* get_inode_by_num(uint dev, uint inum);
+

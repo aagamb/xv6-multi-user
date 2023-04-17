@@ -123,6 +123,8 @@ extern int sys_setregid(void);
 extern int sys_symlink(void);
 extern int sys_readlink(void);
 extern int sys_chmod(void);
+extern int sys_chdotuid(void);
+extern int sys_mkdir2(void);
 
 
 static int (*syscalls[])(void) = {
@@ -158,6 +160,8 @@ static int (*syscalls[])(void) = {
 [SYS_symlink]  sys_symlink,
 [SYS_readlink] sys_readlink,
 [SYS_chmod]    sys_chmod,
+[SYS_chdotuid] sys_chdotuid,
+[SYS_mkdir2]   sys_mkdir2,
 };
 
 void

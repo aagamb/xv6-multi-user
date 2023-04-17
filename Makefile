@@ -215,6 +215,7 @@ UPROGS=\
 	_chmod\
 	_su\
 	_test\
+	_chdot\
 
 fs.img: mkfs passwd group README $(UPROGS)
 	./mkfs fs.img passwd group README $(UPROGS)

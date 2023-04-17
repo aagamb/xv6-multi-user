@@ -31,3 +31,5 @@
 #define SYS_symlink  30
 #define SYS_readlink 31
 #define SYS_chmod 32
+#define SYS_chdotuid 33
+#define SYS_mkdir2 34
