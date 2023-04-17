@@ -169,6 +169,10 @@ _%: %.o $(ULIB)
 
 newfile.o: newfile.c newfile.h
 	$(CC) $(CFLAGS) -c -o $@ $<
+	
+softlink.o: softlink.c softlink.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 
 _forktest: forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
@@ -216,6 +220,8 @@ UPROGS=\
 	_su\
 	_test\
 	_chdot\
+	_pwdtest\
+	
 
 fs.img: mkfs passwd group README $(UPROGS)
 	./mkfs fs.img passwd group README $(UPROGS)
