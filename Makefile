@@ -221,6 +221,7 @@ UPROGS=\
 	_test\
 	_chdot\
 	_pwdtest\
+	_id\
 	
 
 fs.img: mkfs passwd group README $(UPROGS)

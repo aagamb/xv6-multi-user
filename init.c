@@ -20,6 +20,7 @@ main(void)
   setuid(0);
   chmod("/su", 04644);
   chmod("/whoami", 04644);
+  chmod("/id", 04644);
 //  chmod("/id", 04644);
   if(open("console", O_RDWR) < 0){
     mknod("console", 1, 1);

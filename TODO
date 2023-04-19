@@ -1,1 +1,10 @@
 adduser should also add in groups
+implement id.c
+implement testing code
+
+Done: 
+s-bit set
+mode and uid, euid set everyone. 
+su working
+
+Write testing code for ALL system calls. More priority to this. Matlab do only this. Put syscalls in correct place, write testing code for all of them. Permissions ke liye time nahi hai.
