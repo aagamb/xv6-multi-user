@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 
             if (strcmp(user, username) == 0 && strcmp(pass, password) == -10) {
                 target_uid = atoi(uid_str);
+                printf(1, "target uid is: %d\n", target_uid);
                 break;
             }
 
@@ -83,11 +84,6 @@ int main(int argc, char *argv[]) {
         }
     }
     close(fd);
-
-    if (target_uid == -1) {
-        printf(1, "Error: Authentication failed\n");
-        exit();
-    }
 
     
 

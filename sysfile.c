@@ -418,18 +418,6 @@ sys_open(void)
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;
  
-  // if (myproc()->euid !=0){
-  //   if( omode == O_WRONLY || omode == O_RDWR || omode == O_CREATE){
-  //     if(checkWritePermission(path)<0){
-  //       return -1;
-  //     }
-  //   }
-  //   if(omode == O_RDONLY || omode == O_RDWR){
-  //     if(checkReadPermission(path)<0){
-  //       return -1;
-  //     }
-  //   }
-  // }
 
   begin_op(); 
 
@@ -448,11 +436,16 @@ sys_open(void)
 
     cprintf("\tip->mode: %d\tip->mode & 06000: %d\tip->uid%d\n", ip->mode, (ip->mode & 06000), ip->uid);
 
-    if ((ip->uid != myproc()->euid) || !(ip->mode & 06000)){
+  //  if ((ip->uid != myproc()->euid)){
+  //   if (!((ip->mode & 04000) || (ip->mode & 02000))){
+  //     end_op();
+  //     return -1;
+  //   }
+  //  } 
       
-    }
+   
 
-    // // Check for read and write permissions
+    // Check for read and write permissions
     // int mask = 0;
     // if (omode & O_RDONLY || omode & O_RDWR) {
     //   mask |= 0400;
@@ -460,7 +453,7 @@ sys_open(void)
     // if (omode & O_WRONLY || omode & O_RDWR) {
     //   mask |= 0200;
     // }
-    // if (!has_requested_permission(ip, mask)) {
+    // if (!has_requested_permission(ip, mask) || myproc()->uid!=0) {
     //   return -1; // Permission denied
     // }
 
@@ -503,28 +496,24 @@ sys_open(void)
     
     }
 
-    // if (ip->type == T_DIR && omode != O_RDONLY) {
-    // iunlockput(ip);
-    // end_op();
-    // return -1;
-    // }  
+    if (ip->type == T_DIR && omode != O_RDONLY) {
+    iunlockput(ip);
+    end_op();
+    return -1;
+    }  
     // if (!has_permission(ip, USER_R_BIT) && (omode == O_RDONLY || omode == O_RDWR)) {
-    //   cprintf("%s: Permission denied\n", path);
+    //   cprintf("%s: Permission denied open 1\n", path);
     //   iunlockput(ip);
     //   end_op();
     //   return -1;
     // }
     // if (!has_permission(ip, USER_W_BIT) && (omode == O_WRONLY || omode == O_RDWR)) {
-    //   cprintf("%s: Permission denied\n", path);
+    //   cprintf("%s: Permission denied open 2\n", path);
     //   iunlockput(ip);
     //   end_op();
     //   return -1;
     // }
-
   
-    
-  
-
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
     if(f)
       fileclose(f);
@@ -579,17 +568,17 @@ sys_mknod(void)
 	int other = fileowner != 1 && groupmember != 1;
 	int invalid = 0;
 
-	if (fileowner) {
-		if (!bits[USER_W_BIT])
-			invalid = 1;
-	} else if (groupmember) {
-		if (!bits[GROUP_W_BIT])
-			invalid = 1;
-	}
-	else if (other) {
-		if (!bits[OTHER_W_BIT])
-			invalid = 1;
-	}
+	// if (fileowner) {
+	// 	if (!bits[USER_W_BIT])
+	// 		invalid = 1;
+	// } else if (groupmember) {
+	// 	if (!bits[GROUP_W_BIT])
+	// 		invalid = 1;
+	// }
+	// else if (other) {
+	// 	if (!bits[OTHER_W_BIT])
+	// 		invalid = 1;
+	// }
 
 	// If we're root, invalid is not important
 	invalid = myproc() -> euid == 0 ? 0 : invalid;
@@ -697,10 +686,11 @@ sys_exec(void)
   }
   memset(argv, 0, sizeof(argv));
 
-  // struct inode *ip;
-  // if ((ip = namei(path,1)) == 0) {
-  //   return -1;
-  // }
+  //struct inode *ip;
+ // if ((ip = namei(path,1)) == 0) {
+  //  cprintf("here\n");
+   // return -1;
+ // }
   
   // ilock(ip);
   // if (!has_permission(ip, USER_X_BIT)) {
@@ -900,26 +890,16 @@ int sys_setuid(void) {
   if (argint(0, &uid) < 0) {
     return -1;
   }
+   struct proc *curproc = myproc();
+   struct inode *ip = myproc()->exec_inode;
 
-  struct inode *ip = myproc()->exec_inode;
   // ilock(ip);
-  if ((ip->mode & 04000) || (ip->mode & 02000)) {
-    myproc()->euid = uid;
-    myproc()->uid = uid;
-    // iunlock(ip);
-    return 0;
-  }
+   if (curproc->uid == 0 || (ip->mode & 04000) || (ip->mode & 02000)) {
+   curproc->uid = uid;
+  //  iunlock(ip);
+   return 0;
+ }
   // iunlock(ip);
-
-  if (uid != 0 && uid != myproc()->uid) {
-    if (myproc()->euid != 0) {
-      return -1;
-    }
-  }
-
-  myproc()->uid = uid;
-  myproc()->euid = uid;
-
   return 0;
 }
 
@@ -930,18 +910,20 @@ sys_seteuid(void)
   if(argint(0, &euid) < 0)
     return -1;
 
-  struct proc *curproc = myproc();
-  struct inode *ip = myproc()->exec_inode;
+ struct proc *curproc = myproc();
+ struct inode *ip = myproc()->exec_inode;
 
-  // ilock(ip);
-  if (curproc->uid == 0 || (ip->mode & 04000) || (ip->mode & 02000)) {
-    curproc->euid = euid;
-    // iunlock(ip);
-    return 0;
-  }
-  // iunlock(ip);
+//  cprintf("inode mode: %d\n", ip->mode);
 
-  return -1;
+  ilock(ip);
+ if (curproc->uid == 0 || (ip->mode & 04000) || (ip->mode & 02000)) {
+   curproc->euid = euid;
+    iunlock(ip);
+   return 0;
+ }
+  iunlock(ip);
+
+ return -1;
 }
 
 int
@@ -1006,11 +988,10 @@ int sys_mkdir2(void)
 
   begin_op();
 
-  if (argstr(1, &uid) <0){
+  if (argint(1, &uid) <0){
     end_op();
     return -1;
   }
-  cprintf("uid is: %d\n", uid);
   if(argstr(0, &path) < 0 || (ip = create(path, T_DIR, 0, 0, uid, 00644)) == 0){
     // panic("error here");
     end_op();

@@ -11,4 +11,6 @@ struct stat {
  int uid;
  int gid;
 int mode;
+struct inode *exec_inode;
+
 };

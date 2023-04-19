@@ -11,7 +11,7 @@ int numUsers = 0;
 int arrIndex;
 char* argv[] = {"sh", 0};
 
-char* strcat(char* dest, const char* src) {
+char* strcat(char* dest, const char* src) { 
     char* p = dest;
     while (*p != '\0') {
         p++;

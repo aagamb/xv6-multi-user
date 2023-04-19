@@ -8,7 +8,7 @@
 struct user* userArray[100];
 int numUsers =0;
 int uidNumber=1000;
-int gidNumber = 69;
+int gidNumber = 0;
 
 char* strcat(char* dest, const char* src) {
     char* p = dest;
@@ -94,7 +94,7 @@ void addUserToPasswd(struct user* u){
 
     // char toAppend [7][100] = {u->username, u->password, itoa(u->uid), itoa(u->gid,) u->personName, u->homedir, itoa(u->mode)};
 
-    strcat(res, "\n");
+    // strcat(res, "\n");
     strcat(res, u->username);
     strcat(res, ":");   
 
@@ -114,10 +114,11 @@ void addUserToPasswd(struct user* u){
     strcat(res, ":");
 
     strcat(res, u->shell);
+    strcat(res, "\n");
 
     // printf(1, "line to be added to passwd is: %s\n", res);
     
-    const char *file_name = "passwd";
+    const char *file_name = "/passwd";
     const char *string_to_append = res;
 
     int fd = open(file_name, O_RDONLY);
@@ -244,7 +245,7 @@ void process_buffer(char *buffer, int length) {
 }
 
 void createUserArray(){
-    int fd = open("passwd", O_RDONLY);
+    int fd = open("/passwd", O_RDONLY);
     if (fd < 0) {
         printf(2, "Error: cannot open file %s\n", "passwd");
         exit();
@@ -288,17 +289,63 @@ void printUserArray(){
     // exit();
 }
 
-void create_dot_path(char *dir_path, char *dot_path) {
-    int i = 0;
-    while (dir_path[i] != '\0') {
-        dot_path[i] = dir_path[i];
-        i++;
+void addGidAndUsername(int gid, const char *username) {
+  int fd, n;
+  int gid_found = 0;
+  char buf[512];
+
+  // Open the "/etc/group" file for reading
+  if ((fd = open("/group", O_RDONLY)) < 0) {
+    printf(2, "Error: Failed to open /group\n");
+    return;
+  }
+
+  // Read the file into the buffer
+  n = read(fd, buf, sizeof(buf) - 64); // Reserve space for the new line
+  buf[n] = '\0';
+  close(fd);
+
+  // Parse the file line by line
+  char *line = strtok(buf, "\n");
+  while (line != 0) {
+    int line_gid = atoi(strtok(line, ":"));
+    if (line_gid == gid) {
+      gid_found = 1;
+      break;
     }
-    dot_path[i] = '/';
-    i++;
-    dot_path[i] = '.';
-    i++;
-    dot_path[i] = '\0';
+    line = strtok(0, "\n");
+  }
+
+  // If the gid is not found, add a new line with the gid and username
+  if (!gid_found) {
+    // Write gid to the buffer
+    // n += itoa(gid, buf + n);
+    // char* temp = itoa(gid);
+    strcpy(buf, gid);
+
+    // Write ':' to the buffer
+    buf[n++] = ':';
+
+    // Write username to the buffer
+    while (*username) {
+      buf[n++] = *username++;
+    }
+
+    // Write newline and null-terminator to the buffer
+    buf[n++] = '\n';
+    buf[n] = '\0';
+
+    // Open the "/etc/group" file for writing
+    if ((fd = open("/group", O_WRONLY)) < 0) {
+      printf(2, "Error: Failed to open /group for writing\n");
+      return;
+    }
+
+    if (write(fd, buf, n) != n) {
+      printf(2, "Error: Failed to write new entry to /group\n");
+    }
+    close(fd);
+  }
 }
 
 
@@ -315,8 +362,10 @@ int main(int argc, char* argv[]){
     struct user* u = createUser(argv[1]);
 
     printf(1, "%s\n", u->homedir);
-    mkdir2(u->homedir, u->uid);
-    printf(1, "uid is: %d\n", u->uid);
+  //  mkdir(u->homedir);
+   if( mkdir2(u->homedir, u->uid)<0){
+	printf(1, "mkdir2 failed\n");
+	}
 	addUserToPasswd(u);
     
     // printUserArray();
