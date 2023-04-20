@@ -10,50 +10,50 @@ int numUsers =0;
 int uidNumber=1000;
 int gidNumber = 0;
 
-char* strcat(char* dest, const char* src) {
-    char* p = dest;
-    while (*p != '\0') {
-        p++;
-    }
-    while (*src != '\0') {
-        *p = *src;
-        p++;
-        src++;
-    }
-    *p = '\0'; 
-    return dest;
-}
+// char* strcat(char* dest, const char* src) {
+//     char* p = dest;
+//     while (*p != '\0') {
+//         p++;
+//     }
+//     while (*src != '\0') {
+//         *p = *src;
+//         p++;
+//         src++;
+//     }
+//     *p = '\0'; 
+//     return dest;
+// }
 
-void reverse(char* str, int len) {
-    int i = 0, j = len - 1;
-    while (i < j) {
-        char temp = str[i];
-        str[i] = str[j];
-        str[j] = temp;
-        i++;
-        j--;
-    }
-}
+// void reverse(char* str, int len) {
+//     int i = 0, j = len - 1;
+//     while (i < j) {
+//         char temp = str[i];
+//         str[i] = str[j];
+//         str[j] = temp;
+//         i++;
+//         j--;
+//     }
+// }
 
-void itoa(int num, char* str) {
-    int i = 0;
-    int sign = num < 0 ? -1 : 1;
-    if (sign == -1) {
-        num = -num;
-    }
+// void itoa(int num, char* str) {
+//     int i = 0;
+//     int sign = num < 0 ? -1 : 1;
+//     if (sign == -1) {
+//         num = -num;
+//     }
 
-    while (num > 0) {
-        str[i++] = (num % 10) + '0';
-        num /= 10;
-    }
+//     while (num > 0) {
+//         str[i++] = (num % 10) + '0';
+//         num /= 10;
+//     }
 
-    if (sign == -1) {
-        str[i++] = '-';
-    }
+//     if (sign == -1) {
+//         str[i++] = '-';
+//     }
 
-    str[i] = '\0';
-    reverse(str, i);
-}
+//     str[i] = '\0';
+//     reverse(str, i);
+// }
 
 struct user* createUser(char username[]){
 
@@ -165,33 +165,33 @@ void addUserToPasswd(struct user* u){
     close(fd);
 }
 
-void strncpy(char *dest, const char *src, int n) {
-    for (int i = 0; i < n && src[i] != '\0'; i++) {
-        dest[i] = src[i];
-    }
-    for (int i = strlen(src); i < n; i++) {
-        dest[i] = '\0';
-    }
-}
+// void strncpy(char *dest, const char *src, int n) {
+//     for (int i = 0; i < n && src[i] != '\0'; i++) {
+//         dest[i] = src[i];
+//     }
+//     for (int i = strlen(src); i < n; i++) {
+//         dest[i] = '\0';
+//     }
+// }
 
-char *strtok(char *str, const char *delim) {
-  static char *last;
-  if (str != NULL) {
-    last = str;
-  }
-  if (last == NULL || *last == '\0') {
-    return NULL;
-  }
-  char *token = last;
-  while (*last != '\0') {
-    if (strchr(delim, *last) != NULL) {
-      *last++ = '\0';
-      break;
-    }
-    last++;
-  }
-  return token;
-}
+// char *strtok(char *str, const char *delim) {
+//   static char *last;
+//   if (str != NULL) {
+//     last = str;
+//   }
+//   if (last == NULL || *last == '\0') {
+//     return NULL;
+//   }
+//   char *token = last;
+//   while (*last != '\0') {
+//     if (strchr(delim, *last) != NULL) {
+//       *last++ = '\0';
+//       break;
+//     }
+//     last++;
+//   }
+//   return token;
+// }
 
 struct user* userFromPasswdLine(char* s)
 {

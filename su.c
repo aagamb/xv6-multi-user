@@ -6,24 +6,24 @@
 #define MAX_USERNAME_LEN 32
 #define MAX_PASSWORD_LEN 32
 
-char *strtok(char *str, const char *delim) {
-  static char *last;
-  if (str != NULL) {
-    last = str;
-  }
-  if (last == NULL || *last == '\0') {
-    return NULL;
-  }
-  char *token = last;
-  while (*last != '\0') {
-    if (strchr(delim, *last) != NULL) {
-      *last++ = '\0';
-      break;
-    }
-    last++;
-  }
-  return token;
-}
+// char *strtok(char *str, const char *delim) {
+//   static char *last;
+//   if (str != NULL) {
+//     last = str;
+//   }
+//   if (last == NULL || *last == '\0') {
+//     return NULL;
+//   }
+//   char *token = last;
+//   while (*last != '\0') {
+//     if (strchr(delim, *last) != NULL) {
+//       *last++ = '\0';
+//       break;
+//     }
+//     last++;
+//   }
+//   return token;
+// }
 
 
 
