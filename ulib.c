@@ -169,7 +169,6 @@ void reverse(char* str, int len) {
     }
 }
 
-
 void itoa(int num, char* str) {
     int i = 0;
     int sign = num < 0 ? -1 : 1;
@@ -189,4 +188,3 @@ void itoa(int num, char* str) {
     str[i] = '\0';
     reverse(str, i);
 }
-

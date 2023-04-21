@@ -6,27 +6,6 @@
 #define MAX_USERNAME_LEN 32
 #define MAX_PASSWORD_LEN 32
 
-// char *strtok(char *str, const char *delim) {
-//   static char *last;
-//   if (str != NULL) {
-//     last = str;
-//   }
-//   if (last == NULL || *last == '\0') {
-//     return NULL;
-//   }
-//   char *token = last;
-//   while (*last != '\0') {
-//     if (strchr(delim, *last) != NULL) {
-//       *last++ = '\0';
-//       break;
-//     }
-//     last++;
-//   }
-//   return token;
-// }
-
-
-
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         printf(1, "Usage: %s username\n", argv[0]);
@@ -74,7 +53,7 @@ int main(int argc, char *argv[]) {
 
             if (strcmp(user, username) == 0 && strcmp(pass, password) == -10) {
                 target_uid = atoi(uid_str);
-                printf(1, "target uid is: %d\n", target_uid);
+                //printf(1, "target uid is: %d\n", target_uid);
                 break;
             }
 
@@ -85,15 +64,18 @@ int main(int argc, char *argv[]) {
     }
     close(fd);
 
+    if (target_uid == -1){
+        printf(1, "Authentication Failed.\n");
+        exit();
+    }
+
     
 
-    // Change effective user ID
     if (seteuid(target_uid) < 0) {
         printf(1, "Error: Failed to set effective user ID\n");
         exit();
     }
 
-    // Change user ID
     if (setuid(target_uid) < 0) {
         printf(1, "Error: Failed to set user ID\n");
         exit();
@@ -106,7 +88,7 @@ int main(int argc, char *argv[]) {
     // setgid(gid);
 
     chdir(home_dir);
-        printf(1, "From su.c-   uid, euid: %d %d\n", getuid(), geteuid());
+//        printf(1, "From su.c-   uid, euid: %d %d\n", getuid(), geteuid());
     exec("sh", shell_argv);
 
 

@@ -2,9 +2,6 @@ struct stat;
 struct rtcdate;
 #include <stddef.h>
 
-//ALL USER TINGS HERE
-//ORIGINAL XV6 TINGS HERE
-
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));

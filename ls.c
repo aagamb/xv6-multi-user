@@ -82,7 +82,7 @@ ls(char *path)
     p = buf+strlen(buf);
     *p++ = '/';
 
-    printf(1, "The uid, euid: %d, %d \n", getuid(), geteuid());
+//    printf(1, "The uid, euid: %d, %d \n", getuid(), geteuid());
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
       if(de.inum == 0)
         continue;
@@ -95,7 +95,7 @@ ls(char *path)
 	char temp[100];
 	convert_permissions_to_str(st.mode, temp);
   
-	printf(1, "%d %s:\t", getuid(), temp);
+	printf(1, "%s:\t", temp);
 
       printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
     }

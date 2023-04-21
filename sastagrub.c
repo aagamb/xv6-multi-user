@@ -11,48 +11,6 @@ int numUsers = 0;
 int arrIndex;
 char* argv[] = {"sh", 0};
 
-// char* strcat(char* dest, const char* src) { 
-//     char* p = dest;
-//     while (*p != '\0') {
-//         p++;
-//     }
-//     while (*src != '\0') {
-//         *p = *src;
-//         p++;
-//         src++;
-//     }
-//     *p = '\0'; 
-//     return dest;
-// }
-
-// void strncpy(char *dest, const char *src, int n) {
-//     for (int i = 0; i < n && src[i] != '\0'; i++) {
-//         dest[i] = src[i];
-//     }
-//     for (int i = strlen(src); i < n; i++) {
-//         dest[i] = '\0';
-//     }
-// }
-
-// char *strtok(char *str, const char *delim) {
-//   static char *last;
-//   if (str != NULL) {
-//     last = str;
-//   }
-//   if (last == NULL || *last == '\0') {
-//     return NULL;
-//   }
-//   char *token = last;
-//   while (*last != '\0') {
-//     if (strchr(delim, *last) != NULL) {
-//       *last++ = '\0';
-//       break;
-//     }
-//     last++;
-//   }
-//   return token;
-// }
-
 struct user* userFromPasswd(char* s)
 {
     struct user* currUser = (struct user*)malloc(sizeof(struct user));

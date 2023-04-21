@@ -13,38 +13,17 @@ int gidNumber =0;
 
 int open_with_root_permissions(const char *path, int flags) {
     // Save the current EUID and set it to 0 (superuser)
-    int original_euid = geteuid();
-    seteuid(0);
+    // int original_euid = geteuid();
+    // seteuid(0);
 
     // Perform the open operation with elevated privileges
     int fd = open(path, flags);
 
     // Restore the original EUID
-    seteuid(original_euid);
-
-    
+    // seteuid(original_euid); 
 
     return fd;
 }
-
-// char *strtok(char *str, const char *delim) {
-//   static char *last;
-//   if (str != NULL) {
-//     last = str;
-//   }
-//   if (last == NULL || *last == '\0') {
-//     return NULL;
-//   }
-//   char *token = last;
-//   while (*last != '\0') {
-//     if (strchr(delim, *last) != NULL) {
-//       *last++ = '\0';
-//       break;
-//     }
-//     last++;
-//   }
-//   return token;
-// }
 
 struct user* userFromPasswdLine(char* s)
 {
