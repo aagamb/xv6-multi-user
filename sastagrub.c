@@ -3,6 +3,7 @@
 #include "fcntl.h"
 //#include "user.h"
 #include "myuser.h"
+#include "user.h"
 
 struct user* userArray[100];
 int uidNumber= 0;

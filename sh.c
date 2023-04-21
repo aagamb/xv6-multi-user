@@ -93,9 +93,9 @@ runcmd(struct cmd *cmd, int uid)
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit();
-      strcpy(binpath, "/bin/");
-	safestrcpy(binpath + 5, ecmd->argv[0], 14);
-  setuid(uid);
+    strcpy(binpath, "/bin/");
+    safestrcpy(binpath + 5, ecmd->argv[0], 14);
+    setuid(uid);
 	
     exec(ecmd->argv[0], ecmd->argv);
     printf(2, "exec %s failed\n", ecmd->argv[0]);

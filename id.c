@@ -22,7 +22,7 @@ void print_uint(int x) {
 }
 
 void parse_file(int fd, int target, char *buf, int buflen) {
-    int n, i = 0, field_start;
+    int n, i = 0, field_start=0;
     char c;
     int field_counter = 0;
     int found = 0;

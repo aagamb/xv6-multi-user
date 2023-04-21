@@ -6,6 +6,8 @@
 #define MAX_USERNAME_LEN 32
 #define MAX_PASSWORD_LEN 32
 
+int uid, gid;
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         printf(1, "Usage: %s username\n", argv[0]);
@@ -29,8 +31,8 @@ int main(int argc, char *argv[]) {
     char line[256];
     int line_pos = 0;
     char home_dir[256];
-    char temp[256];
-    int uid, gid;
+    // char temp[256];
+    
 
     char c;
     while (read(fd, &c, 1) > 0) {
@@ -47,6 +49,8 @@ int main(int argc, char *argv[]) {
             char *temp= strtok(0, ":");
             memset(home_dir, '\0', sizeof(home_dir));
             strcpy(home_dir, temp);
+
+            strcpy(_, "y");
 
             // printf(1, "Homedir: %s\n\n", home_dir);
             // printf(1, "username: %s password: %s;\n strcmp values: %d %d", user, pass, strcmp(user, username), strcmp(pass, password));  

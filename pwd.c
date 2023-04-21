@@ -3,9 +3,6 @@
 #include "fs.h"
 #include "stat.h"
 #include "user.h"
-
-
-#define NULL   ((void*)0)
 #define FALSE  (0)
 #define TRUE   (1)
 

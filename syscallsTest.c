@@ -4,7 +4,7 @@
 
 int shared_status;
 
-int system(const char *command) {
+int system(char *command) {
     int pid = fork();
     if (pid < 0) {
         printf(2, "system: fork failed\n");
@@ -98,7 +98,6 @@ void test_syscalls() {
 
 int main() {
   test_syscalls();
-  char *argv[] = {"ls", 0};
 
   exit();
 }

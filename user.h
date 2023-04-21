@@ -51,4 +51,7 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
-
+char *strtok(char *str, const char *delim);
+char* strcat(char* dest, const char* src); 
+void itoa(int num, char* str);
+void strncpy(char *dest, const char *src, int n);

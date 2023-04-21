@@ -247,8 +247,9 @@ void addGidAndUsername(int gid, const char *username) {
   if (!gid_found) {
     // Write gid to the buffer
     // n += itoa(gid, buf + n);
-    // char* temp = itoa(gid);
-    strcpy(buf, gid);
+    char temp[16];
+    itoa(gid, temp);
+    strcpy(buf, temp);
 
     // Write ':' to the buffer
     buf[n++] = ':';
