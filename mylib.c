@@ -3,7 +3,6 @@
 #include "fcntl.h"
 #include "mylib.h"
 #include "x86.h"
-#include "string.h"
 
 char *strtok22(char *str, const char *delim) {
   static char *last;
