@@ -206,7 +206,7 @@ sys_fstat(void)
     char buf[100];
 
     ilock(f->ip);
-    read_symlink(f->ip, buf, sizeof(buf)); 
+    read_symlink((char*)f->ip, buf, sizeof(buf)); 
     iunlock(f->ip);
 
     begin_op();
