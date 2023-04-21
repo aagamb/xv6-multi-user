@@ -5,7 +5,7 @@
 #include "file.h"
 
 #define ZEROBUFFSIZE 512
-static char zerobuff[ZEROBUFFSIZE];
+// static char zerobuff[ZEROBUFFSIZE];
 
 
 int devzeroread(struct inode *ip, char *buf, int n)
@@ -35,5 +35,6 @@ int devzeroinit(void)
 {
 	devsw[DEVZERO].read = devzeroread;
 	devsw[DEVZERO].write = devzerowrite;
+	return 0;
 }
 

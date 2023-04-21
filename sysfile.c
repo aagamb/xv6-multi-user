@@ -206,7 +206,7 @@ sys_fstat(void)
     char buf[100];
 
     ilock(f->ip);
-    read_symlink(f->ip, buf, sizeof(buf));
+    read_symlink(f->ip, buf, sizeof(buf)); 
     iunlock(f->ip);
 
     begin_op();
@@ -530,32 +530,19 @@ sys_mknod(void)
   struct inode *ip;
   struct inode *parent;
   char name[14];
-  char *path;
+  char *path = "\0";
   int major, minor;
 
   int bits[10];
   parent = nameiparent(path, name);
 	integer_to_binary(parent -> mode, 10, bits);
 
-	int fileowner = parent -> uid == myproc() -> euid;
-	int groupmember = 0;
+	// int fileowner = parent -> uid == myproc() -> euid;
+	// int groupmember = 0;
 
-	int other = fileowner != 1 && groupmember != 1;
 	int invalid = 0;
 
-	// if (fileowner) {
-	// 	if (!bits[USER_W_BIT])
-	// 		invalid = 1;
-	// } else if (groupmember) {
-	// 	if (!bits[GROUP_W_BIT])
-	// 		invalid = 1;
-	// }
-	// else if (other) {
-	// 	if (!bits[OTHER_W_BIT])
-	// 		invalid = 1;
-	// }
 
-	// If we're root, invalid is not important
 	invalid = myproc() -> euid == 0 ? 0 : invalid;
 
 	if (invalid) {

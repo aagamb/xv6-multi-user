@@ -6,7 +6,7 @@
 
 
 #define NULLBUFFSIZE 512
-static char nullbuff[NULLBUFFSIZE];
+// static char nullbuff[NULLBUFFSIZE];
 
 
 int devnullread(struct inode *ip, char *buf, int n)
@@ -31,5 +31,6 @@ int devnullinit(void)
 {
 	devsw[DEVNULL].read = devnullread;
 	devsw[DEVNULL].write = devnullwrite;
+	return 0;
 }
 
